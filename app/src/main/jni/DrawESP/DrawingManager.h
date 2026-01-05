@@ -12,6 +12,12 @@ float GetDistance(const Vector3& a, const Vector3& b) {
     return std::sqrt(dx * dx + dy * dy + dz * dz);
 }
 
+float Distance2D(const Vector2& a, const Vector2& b) {
+    float dx = a.x - b.x;
+    float dy = a.y - b.y;
+    return std::sqrtf(dx * dx + dy * dy);
+}
+
 Vector3 SubtractVec(const Vector3& target, const Vector3& camPos)
 {
     return {
@@ -25,7 +31,7 @@ Vector3 SubtractVec(const Vector3& target, const Vector3& camPos)
 bool EnableESP, ESPLine;
 std::unordered_set<void*> entityList = {};
 Vector3 myPosition(0,0,0);
-
+float aimbotFOV = 180.0f;
 // toggle
 bool godMod, infAmmo, aimbot = false;
 float humanHeight = 1.8f;
@@ -50,6 +56,46 @@ void* localPlayer = nullptr;
 
 // every frame
 void DrawESP(AadilDrawing esp, int width, int height) {
+    if(aimbot){
+        // Draw FOV Aimbot
+        Vector2 target{9999, 9999};
+        float bestDistance = aimbotFOV;
+        Vector2 center = convertToDeviceScreen(get_width() / 2.0f, get_height() / 2.0f, width, height, get_width(), get_height());
+        esp.DrawCircle({255,255,255,255}, 3.0f, center, aimbotFOV);
+
+        void* camera = get_mainCamera();
+        if(!camera) return;
+        //
+        for(void* entity : entityList){
+            bool hasTarget = false;
+            bool isAlive = true;
+            float* hp = (float*)((uintptr_t)entity + 0x58);
+            if(*hp <= 0)
+                isAlive = false;
+
+            void* transform = get_transform(entity);
+            if(transform && isAlive) {
+                Vector3 targetPosition = get_position(transform);
+                targetPosition.y += 1.2f;
+                Vector3 screenTargetPosition = get_worldToScreenPoint(camera, targetPosition);
+                // normalize
+                Vector2 targetScreenPos = convertToDeviceScreen(screenTargetPosition.x,screenTargetPosition.y, width,height, get_width(), get_height());
+                if (screenTargetPosition.z > 0) {
+                    float distanceCalc = Distance2D(center, {screenTargetPosition.x, screenTargetPosition.y});
+                    if (distanceCalc < aimbotFOV) {
+                        bestDistance = distanceCalc;
+                        target = targetScreenPos;
+                        hasTarget = true;
+                        if (bestDistance < aimbotFOV && hasTarget) {
+                            esp.DrawLine({255, 255, 255, 255}, 3.0f, center, target);
+                            // Aimbot stuff
+
+                            }
+                        }
+                    }
+                }
+            }
+    }
     if (!EnableESP) return;
     if(!localPlayer) return;
 //    LOGI("Width : %d , height : %d", get_width(), get_height());
@@ -93,40 +139,36 @@ void DrawESP(AadilDrawing esp, int width, int height) {
 
                 // ESP draw
                 if(screenPosBottomVec.z > 0 && screenPosTopVec.z > 0){
-
-
-                    if(aimbot){
-                        void* camTransform = get_transform(camera);
-                        void* localPlayerTransform = get_transform(localPlayer);
-                        if(camTransform){
-                            Vector3 camPos = get_position(camTransform);
-                            Vector3 targetPos = get_position(transform);
-                            targetPos.y += 1;
-                            Vector3 dir = SubtractVec(targetPos, camPos);
-                            float distXZ = std::sqrtf(dir.x * dir.x + dir.z * dir.z);
-                            float yaw = std::atan2(dir.x, dir.z) * (180.0f / 3.1415);
-                            float pitch = -std::atan2(dir.y, distXZ) * 57.295779513f;
-                            Quaternion aimRotation = Euler({pitch, yaw, 0});
-
-                            if(localPlayer){
-                                void* firstPlayerController = *(void**)((uintptr_t)localPlayer + 0x40);
-                                if(firstPlayerController){
-                                    if(infAmmo){
-                                        Quaternion bodyRot   = Euler({0.0f, yaw, 0.0f});
-                                        Quaternion cameraRot = Euler({pitch, 0.0f, 0.0f});
-                                        setRotation(firstPlayerController, bodyRot, cameraRot);
-                                    }else{
-                                        setRotation(firstPlayerController, aimRotation, aimRotation);
-                                    }
-                                }
-                            }
-
-//                            set_rotation_camera(camTransform, aimRotation);
-//                            set_rotation_camera(localPlayerTransform, aimRotation);
-                        }
-                    }
-
-
+//                    if(aimbot){
+//                        void* camTransform = get_transform(camera);
+//                        void* localPlayerTransform = get_transform(localPlayer);
+//                        if(camTransform){
+//                            Vector3 camPos = get_position(camTransform);
+//                            Vector3 targetPos = get_position(transform);
+//
+//                            targetPos.y += 1;
+//
+//                            Vector3 dir = SubtractVec(targetPos, camPos);
+//                            float distXZ = std::sqrtf(dir.x * dir.x + dir.z * dir.z);
+//                            float yaw = std::atan2(dir.x, dir.z) * (180.0f / 3.1415);
+//                            float pitch = -std::atan2(dir.y, distXZ) * 57.295779513f;
+//                            Quaternion aimRotation = Euler({pitch, yaw, 0});
+//
+//                            if(localPlayer){
+//                                void* firstPlayerController = *(void**)((uintptr_t)localPlayer + 0x40);
+//                                if(firstPlayerController){
+//                                    if(infAmmo){
+//                                        Quaternion bodyRot   = Euler({0.0f, yaw, 0.0f});
+//                                        Quaternion cameraRot = Euler({pitch, 0.0f, 0.0f});
+//                                        setRotation(firstPlayerController, bodyRot, cameraRot);
+//                                    }else{
+//                                        setRotation(firstPlayerController, aimRotation, aimRotation);
+//                                    }
+//                                }
+//                            }
+//
+//                        }
+//                    }
                     Vector2 screenPosBottom = convertToDeviceScreen(screenPosBottomVec.x, screenPosBottomVec.y, width, height, get_width(), get_height());
                     Vector2 screenPosTop = convertToDeviceScreen(screenPosTopVec.x, screenPosTopVec.y, width, height, get_width(), get_height());
                     if(EnableESP && isAlive){
@@ -193,10 +235,15 @@ void updateBaseCharacter (void* instance){ // OnStartServer
 void (*old_fire)(void* gun);
 void fire(void* gun){
     if(gun && infAmmo){
-        int* ammo = (int*)((uintptr_t )gun + 0xAC);
-        *ammo = 1000;
-    }
+        if(localPlayer){
+            void* playerOwner = *(void**)((uintptr_t)gun + 0x60);
+            if(playerOwner && localPlayer){
+                int* ammo = (int*)((uintptr_t )gun + 0xAC);
+                *ammo = 1000;
+            }
 
+        }
+    }
     old_fire(gun);
 }
 

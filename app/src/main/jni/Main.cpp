@@ -26,14 +26,14 @@ jobjectArray GetFeatureList(JNIEnv *env, jobject context) {
             OBFUSCATE("10_ButtonOnOff_Enable ESP"),
             OBFUSCATE("20_ButtonOnOff_God Mod"),
             OBFUSCATE("30_ButtonOnOff_Infinite Ammo"),
-            OBFUSCATE("40_ButtonOnOff_Aimbot")
+            OBFUSCATE("40_ButtonOnOff_Aimbot"),
+            OBFUSCATE("50_SeekBar_AimbotFOV_1_360"),
     };
 
     int Total_Feature = (sizeof features / sizeof features[0]);
     ret = (jobjectArray)
             env->NewObjectArray(Total_Feature, env->FindClass(OBFUSCATE("java/lang/String")),
                                 env->NewStringUTF(""));
-
     for (int i = 0; i < Total_Feature; i++)
         env->SetObjectArrayElement(ret, i, env->NewStringUTF(features[i]));
 
@@ -58,6 +58,10 @@ void Changes(JNIEnv *env, jclass clazz, jobject obj, jint featNum, jstring featN
             aimbot = boolean;
             break;
 
+        case 50:
+            aimbotFOV = (float)value;
+            break;
+
     }
 }
 
@@ -75,7 +79,7 @@ void *hack_thread(void *) {
         g_il2cppELF = ElfScanner::createWithPath(targetLibName);
     } while (!g_il2cppELF.isValid());
 
-    LOGI(OBFUSCATE("%s has been loaded"), (const char *) targetLibName);
+    LOGI(OBFUSCATE("%s lib loaded"), (const char *) targetLibName);
 
 #if defined(__aarch64__)
 
