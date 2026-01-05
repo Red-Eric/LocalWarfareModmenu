@@ -12,12 +12,22 @@ float GetDistance(const Vector3& a, const Vector3& b) {
     return std::sqrt(dx * dx + dy * dy + dz * dz);
 }
 
+Vector3 SubtractVec(const Vector3& target, const Vector3& camPos)
+{
+    return {
+            target.x - camPos.x,
+            target.y - camPos.y,
+            target.z - camPos.z
+    };
+}
+
+
 bool EnableESP, ESPLine;
 std::unordered_set<void*> entityList = {};
 Vector3 myPosition(0,0,0);
 
 // toggle
-bool godMod, infAmmo = false;
+bool godMod, infAmmo, aimbot = false;
 float humanHeight = 1.8f;
 float humanWidth = 1.0f;
 void* (*get_transform)(void* object);
@@ -26,6 +36,9 @@ Vector3 (*get_worldToScreenPoint)(void* object, Vector3 pos);
 void* (*get_mainCamera)();
 int (*get_height)();
 int (*get_width)();
+Quaternion (*Euler)(Vector3 euler);
+void (*setRotation)(void* characterControllerInstance, Quaternion bodyRotation , Quaternion CameraRotation);
+void (*set_rotation_camera)(void* transform, Quaternion value);
 
 
 Vector2 convertToDeviceScreen(float posX, float posY, float deviceWidth , float deviceHeight, float gameWidth, float gameHeight){
@@ -75,9 +88,45 @@ void DrawESP(AadilDrawing esp, int width, int height) {
 
                 // distance
                 float  dist = GetDistance(myPosition, posBottom);
+                // Aimbot
 
 
+                // ESP draw
                 if(screenPosBottomVec.z > 0 && screenPosTopVec.z > 0){
+
+
+                    if(aimbot){
+                        void* camTransform = get_transform(camera);
+                        void* localPlayerTransform = get_transform(localPlayer);
+                        if(camTransform){
+                            Vector3 camPos = get_position(camTransform);
+                            Vector3 targetPos = get_position(transform);
+                            targetPos.y += 1;
+                            Vector3 dir = SubtractVec(targetPos, camPos);
+                            float distXZ = std::sqrtf(dir.x * dir.x + dir.z * dir.z);
+                            float yaw = std::atan2(dir.x, dir.z) * (180.0f / 3.1415);
+                            float pitch = -std::atan2(dir.y, distXZ) * 57.295779513f;
+                            Quaternion aimRotation = Euler({pitch, yaw, 0});
+
+                            if(localPlayer){
+                                void* firstPlayerController = *(void**)((uintptr_t)localPlayer + 0x40);
+                                if(firstPlayerController){
+                                    if(infAmmo){
+                                        Quaternion bodyRot   = Euler({0.0f, yaw, 0.0f});
+                                        Quaternion cameraRot = Euler({pitch, 0.0f, 0.0f});
+                                        setRotation(firstPlayerController, bodyRot, cameraRot);
+                                    }else{
+                                        setRotation(firstPlayerController, aimRotation, aimRotation);
+                                    }
+                                }
+                            }
+
+//                            set_rotation_camera(camTransform, aimRotation);
+//                            set_rotation_camera(localPlayerTransform, aimRotation);
+                        }
+                    }
+
+
                     Vector2 screenPosBottom = convertToDeviceScreen(screenPosBottomVec.x, screenPosBottomVec.y, width, height, get_width(), get_height());
                     Vector2 screenPosTop = convertToDeviceScreen(screenPosTopVec.x, screenPosTopVec.y, width, height, get_width(), get_height());
                     if(EnableESP && isAlive){

@@ -26,6 +26,7 @@ jobjectArray GetFeatureList(JNIEnv *env, jobject context) {
             OBFUSCATE("10_ButtonOnOff_Enable ESP"),
             OBFUSCATE("20_ButtonOnOff_God Mod"),
             OBFUSCATE("30_ButtonOnOff_Infinite Ammo"),
+            OBFUSCATE("40_ButtonOnOff_Aimbot")
     };
 
     int Total_Feature = (sizeof features / sizeof features[0]);
@@ -53,7 +54,9 @@ void Changes(JNIEnv *env, jclass clazz, jobject obj, jint featNum, jstring featN
         case 30:
             infAmmo = boolean;
             break;
-
+        case 40:
+            aimbot = boolean;
+            break;
 
     }
 }
@@ -89,6 +92,9 @@ void *hack_thread(void *) {
     get_worldToScreenPoint = (Vector3 (*)(void *, Vector3)) getAbsoluteAddress(targetLibName, str2Offset(OBFUSCATE("0x1BB92B4")));
     get_height = (int (*)()) getAbsoluteAddress(targetLibName, str2Offset(OBFUSCATE("0x1BB5120")));
     get_width = (int (*)()) getAbsoluteAddress(targetLibName, str2Offset(OBFUSCATE("0x1BB50D8")));
+    Euler = (Quaternion (*)(Vector3)) getAbsoluteAddress(targetLibName, str2Offset(OBFUSCATE("0x1B963A0")));
+    setRotation = (void (*)(void*, Quaternion, Quaternion)) getAbsoluteAddress(targetLibName, str2Offset(OBFUSCATE("0x59D604")));
+    set_rotation_camera = (void (*)(void*, Quaternion)) getAbsoluteAddress(targetLibName, str2Offset(OBFUSCATE("0x1BC728C")));
 
 #endif
 

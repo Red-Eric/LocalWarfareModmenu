@@ -19,6 +19,18 @@ struct Color {
     }
 };
 
+struct Quaternion {
+    float x;
+    float y;
+    float z;
+    float w;
+
+    Quaternion() : x(0), y(0), z(0), w(1) {}
+    Quaternion(float _x, float _y, float _z, float _w)
+            : x(_x), y(_y), z(_z), w(_w) {}
+};
+
+
 class AadilDrawing {
 	private:
 		JNIEnv *jnienv;
