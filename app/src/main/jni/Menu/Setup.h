@@ -19,10 +19,7 @@ void Init(JNIEnv *env, jobject thiz, jobject ctx, jobject title, jobject subtitl
     setText(env, title, OBFUSCATE("<b>MODMENU TEST</b>"));
 
     //Set sub title
-    setText(env, subtitle, OBFUSCATE("<b><marquee><p style=\"font-size:30\">"
-                                     "<p style=\"color:green;\">Modded by Aadil Mods</p> | "
-                                     "ESP Source (Overlay Only)</p>"
-                                     "</marquee></b>"));
+    setText(env, subtitle, OBFUSCATE("Github : https://github.com/Red-Eric"));
 
     //Dialog Example
     //setDialog(ctx,env,OBFUSCATE("Title"),OBFUSCATE("Message Example"));

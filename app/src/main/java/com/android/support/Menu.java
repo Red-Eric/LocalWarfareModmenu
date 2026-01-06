@@ -73,11 +73,7 @@ public class Menu {
     //region Variable
     public static final String TAG = "Mod_Menu"; //Tag for logcat
 
-    int TEXT_COLOR = Color.parseColor("#82CAFD");
-    int TEXT_COLOR_2 = Color.parseColor("#FFFFFF");
-    int BTN_COLOR = Color.parseColor("#1C262D");
-    int MENU_BG_COLOR = Color.parseColor("#EE1C2A35"); //#AARRGGBB
-    int MENU_FEATURE_BG_COLOR = Color.parseColor("#DD141C22"); //#AARRGGBB
+
     int MENU_WIDTH = 290;
     int MENU_HEIGHT = 210;
     int POS_X = 0;
@@ -86,17 +82,24 @@ public class Menu {
     float MENU_CORNER = 4f;
     int ICON_SIZE = 45; //Change both width and height of image
     float ICON_ALPHA = 0.7f; //Transparent
-    int ToggleON = Color.GREEN;
-    int ToggleOFF = Color.RED;
-    int BtnON = Color.parseColor("#1b5e20");
-    int BtnOFF = Color.parseColor("#7f0000");
-    int CategoryBG = Color.parseColor("#2F3D4C");
-    int SeekBarColor = Color.parseColor("#80CBC4");
-    int SeekBarProgressColor = Color.parseColor("#80CBC4");
-    int CheckBoxColor = Color.parseColor("#80CBC4");
-    int RadioColor = Color.parseColor("#FFFFFF");
-	int CollapseColor = Color.parseColor("#232F2C");
-    String NumberTxtColor = "#41c300";
+
+    int TEXT_COLOR = Color.parseColor("#FFCDD2");
+    int TEXT_COLOR_2 = Color.parseColor("#FFFFFF");
+    int BTN_COLOR = Color.parseColor("#121212");
+    int MENU_BG_COLOR = Color.parseColor("#EE0D0D0D");
+    int MENU_FEATURE_BG_COLOR = Color.parseColor("#DD1A1A1A");
+    int ToggleON = Color.parseColor("#D32F2F");
+    int ToggleOFF = Color.parseColor("#424242");
+    int BtnON = Color.parseColor("#B71C1C");
+    int BtnOFF = Color.parseColor("#1C1C1C");
+    int CategoryBG = Color.parseColor("#1A1A1A");
+    int SeekBarColor = Color.parseColor("#C62828");
+    int SeekBarProgressColor = Color.parseColor("#D32F2F");
+    int CheckBoxColor = Color.parseColor("#D32F2F");
+    int RadioColor = Color.parseColor("#FF5252");
+    int CollapseColor = Color.parseColor("#0F0F0F");
+    String NumberTxtColor = "#FF3D00";
+
     //********************************************************************//
 
     RelativeLayout mCollapsed, mRootContainer;
@@ -195,38 +198,38 @@ public class Menu {
         wView.setOnTouchListener(onTouchListener());
 
         //********** Settings icon **********
-        TextView settings = new TextView(context); //Android 5 can't show ⚙, instead show other icon instead
-        settings.setText(Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M ? "⚙" : "\uD83D\uDD27");
-        settings.setTextColor(TEXT_COLOR);
-        settings.setTypeface(Typeface.DEFAULT_BOLD);
-        settings.setTextSize(20.0f);
-        RelativeLayout.LayoutParams rlsettings = new RelativeLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT);
-        rlsettings.addRule(ALIGN_PARENT_RIGHT);
-        settings.setLayoutParams(rlsettings);
-        settings.setOnClickListener(new View.OnClickListener() {
-            boolean settingsOpen;
-
-            @Override
-            public void onClick(View v) {
-                try {
-                    settingsOpen = !settingsOpen;
-                    if (settingsOpen) {
-                        scrollView.removeView(mods);
-                        scrollView.addView(mSettings);
-                        scrollView.scrollTo(0, 0);
-                    } else {
-                        scrollView.removeView(mSettings);
-                        scrollView.addView(mods);
-                    }
-                } catch (IllegalStateException e) {
-                }
-            }
-        });
+//        TextView settings = new TextView(context); //Android 5 can't show ⚙, instead show other icon instead
+//        settings.setText(Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M ? "⚙" : "\uD83D\uDD27");
+//        settings.setTextColor(TEXT_COLOR);
+//        settings.setTypeface(Typeface.DEFAULT_BOLD);
+//        settings.setTextSize(20.0f);
+//        RelativeLayout.LayoutParams rlsettings = new RelativeLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT);
+//        rlsettings.addRule(ALIGN_PARENT_RIGHT);
+//        settings.setLayoutParams(rlsettings);
+//        settings.setOnClickListener(new View.OnClickListener() {
+//            boolean settingsOpen;
+//
+//            @Override
+//            public void onClick(View v) {
+//                try {
+//                    settingsOpen = !settingsOpen;
+//                    if (settingsOpen) {
+//                        scrollView.removeView(mods);
+//                        scrollView.addView(mSettings);
+//                        scrollView.scrollTo(0, 0);
+//                    } else {
+//                        scrollView.removeView(mSettings);
+//                        scrollView.addView(mods);
+//                    }
+//                } catch (IllegalStateException e) {
+//                }
+//            }
+//        });
 
         //********** Settings **********
-        mSettings = new LinearLayout(context);
-        mSettings.setOrientation(LinearLayout.VERTICAL);
-        featureList(SettingsList(), mSettings);
+//        mSettings = new LinearLayout(context);
+//        mSettings.setOrientation(LinearLayout.VERTICAL);
+//        featureList(SettingsList(), mSettings);
 
         //********** Title **********
         RelativeLayout titleText = new RelativeLayout(context);
@@ -275,7 +278,7 @@ public class Menu {
         Button hideBtn = new Button(context);
         hideBtn.setLayoutParams(lParamsHideBtn);
         hideBtn.setBackgroundColor(Color.TRANSPARENT);
-        hideBtn.setText("HIDE/KILL (Hold)");
+        hideBtn.setText("[X]");
         hideBtn.setTextColor(TEXT_COLOR);
         hideBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
@@ -301,7 +304,7 @@ public class Menu {
         Button closeBtn = new Button(context);
         closeBtn.setLayoutParams(lParamsCloseBtn);
         closeBtn.setBackgroundColor(Color.TRANSPARENT);
-        closeBtn.setText("MINIMIZE");
+        closeBtn.setText("[-]");
         closeBtn.setTextColor(TEXT_COLOR);
         closeBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
@@ -320,7 +323,7 @@ public class Menu {
             mCollapsed.addView(startimage);
         }
         titleText.addView(title);
-        titleText.addView(settings);
+//        titleText.addView(settings);
         mExpanded.addView(titleText);
         mExpanded.addView(subTitle);
         scrollView.addView(mods);

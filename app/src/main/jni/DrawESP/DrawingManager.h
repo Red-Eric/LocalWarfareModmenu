@@ -71,11 +71,11 @@ void *localPlayer = nullptr;
 void DrawESP(AadilDrawing esp, int width, int height) {
     if (aimbot) {
         Vector2 target{9999, 9999};
-        float bestDistance = aimbotFOV;
+        float bestDistance = aimbotFOV; // 150
 
         Vector2 center = convertToDeviceScreen(
-                get_width() / 2.0f,
-                get_height() / 2.0f,
+                get_width() / 2,
+                get_height() / 2,
                 width, height,
                 get_width(), get_height()
         );
