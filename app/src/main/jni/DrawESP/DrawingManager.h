@@ -70,48 +70,64 @@ void *localPlayer = nullptr;
 // every frame
 void DrawESP(AadilDrawing esp, int width, int height) {
     if (aimbot) {
-        // Draw FOV Aimbot
         Vector2 target{9999, 9999};
         float bestDistance = aimbotFOV;
-        Vector2 center = convertToDeviceScreen(get_width() / 2.0f, get_height() / 2.0f, width,
-                                               height, get_width(), get_height());
-        esp.DrawCircle({255, 255, 255, 255}, 3.0f, center, aimbotFOV);
 
-        void *camera = get_mainCamera();
+        Vector2 center = convertToDeviceScreen(
+                get_width() / 2.0f,
+                get_height() / 2.0f,
+                width, height,
+                get_width(), get_height()
+        );
+
+        esp.DrawCircle({255,255,255,255}, 3.0f, center, aimbotFOV);
+
+        void* camera = get_mainCamera();
         if (!camera) return;
-        //
-        for (void *entity: entityList) {
-            bool hasTarget = false;
-            bool isAlive = true;
-            float *hp = (float *) ((uintptr_t) entity + 0x58);
-            if (*hp <= 0)
-                isAlive = false;
 
-            void *transform = get_transform(entity);
-            if (transform && isAlive) {
-                Vector3 targetPosition = get_position(transform);
-                targetPosition.y += 1.2f;
-                Vector3 screenTargetPosition = get_worldToScreenPoint(camera, targetPosition);
-                // normalize
-                Vector2 targetScreenPos = convertToDeviceScreen(screenTargetPosition.x,
-                                                                screenTargetPosition.y, width,
-                                                                height, get_width(), get_height());
-                if (screenTargetPosition.z > 0) {
-                    float distanceCalc = Distance2D(center, {screenTargetPosition.x,
-                                                             screenTargetPosition.y});
-                    if (distanceCalc < aimbotFOV) {
-                        bestDistance = distanceCalc;
-                        target = targetScreenPos;
-                        hasTarget = true;
-                        if (bestDistance < aimbotFOV && hasTarget) {
-                            esp.DrawLine({255, 255, 255, 255}, 3.0f, center, target);
-                            targetAimbotPos = targetPosition;
-                        }
-                    }
+        for (void* entity : entityList) {
+
+            float* hp = (float*)((uintptr_t)entity + 0x58);
+            if (*hp <= 0) continue;
+
+            void* transform = get_transform(entity);
+            if (!transform) continue;
+
+            Vector3 worldPos = get_position(transform);
+            worldPos.y += 0.9f;
+
+            Vector3 screenPos = get_worldToScreenPoint(camera, worldPos);
+            if (screenPos.z <= 0) continue;
+
+            Vector2 devicePos = convertToDeviceScreen(
+                    screenPos.x,
+                    screenPos.y,
+                    width, height,
+                    get_width(), get_height()
+            );
+
+            float dist = Distance2D(center, devicePos);
+
+            if (dist < bestDistance) {
+                bool hasTarget = false;
+                bestDistance = dist;
+                target = devicePos;
+                targetAimbotPos = worldPos;
+                hasTarget = true;
+                if (hasTarget) {
+                    esp.DrawLine(
+                            {255, 255, 255, 255},
+                            3.0f,
+                            center,
+                            target
+                    );
                 }
+
             }
         }
     }
+
+
     if (!EnableESP) return;
     if (!localPlayer) return;
 //    LOGI("Width : %d , height : %d", get_width(), get_height());
@@ -218,7 +234,6 @@ void updateGun(void *instance) {
 // baseCharactereController
 
 void (*old_updateBaseCharacter)(void *instance);
-
 void updateBaseCharacter(void *instance) { // OnStartServer
     if (instance) {
         entityList.insert(instance);
@@ -228,7 +243,6 @@ void updateBaseCharacter(void *instance) { // OnStartServer
 
 // fireHook (debug)
 void (*old_fire)(void *gun);
-
 void fire(void *gun) {
     if (gun && infAmmo) {
         if (localPlayer) {
@@ -242,33 +256,34 @@ void fire(void *gun) {
     }
 
     if (gun && localPlayer && aimbot) {
-        void *camera = get_mainCamera();
-        if (camera) {
-            void *camTransform = get_transform(camera);
-            void *localPlayerTransform = get_transform(localPlayer);
-            if (camTransform) {
-                Vector3 camPos = get_position(camTransform);
-                Vector3 targetPos = targetAimbotPos;
+        void *playerOwner = *(void **) ((uintptr_t) gun + 0x60);
+        if(playerOwner == localPlayer){
+            void *camera = get_mainCamera();
+            if (camera) {
+                void *camTransform = get_transform(camera);
+                void *localPlayerTransform = get_transform(localPlayer);
+                if (camTransform) {
+                    Vector3 camPos = get_position(camTransform);
+                    Vector3 targetPos = targetAimbotPos;
 
-                Vector3 dir = SubtractVec(targetPos, camPos);
-                float distXZ = std::sqrtf(dir.x * dir.x + dir.z * dir.z);
-                float yaw = std::atan2(dir.x, dir.z) * (180.0f / 3.1415);
-                float pitch = -std::atan2(dir.y, distXZ) * 57.295779513f;
-                Quaternion aimRotation = Euler({pitch, yaw, 0});
+                    Vector3 dir = SubtractVec(targetPos, camPos);
+                    float distXZ = std::sqrtf(dir.x * dir.x + dir.z * dir.z);
+                    float yaw = std::atan2(dir.x, dir.z) * (180.0f / 3.1415);
+                    float pitch = -std::atan2(dir.y, distXZ) * 57.295779513f;
+                    Quaternion aimRotation = Euler({pitch, yaw, 0});
 
-                if (localPlayer) {
-                    void *firstPlayerController = *(void **) ((uintptr_t) localPlayer + 0x40);
-                    if (firstPlayerController) {
-                        Quaternion bodyRot = Euler({0.0f, yaw, 0.0f});
-                        Quaternion cameraRot = Euler({pitch, 0.0f, 0.0f});
-                        setRotation(firstPlayerController, bodyRot, cameraRot);
+                    if (localPlayer) {
+                        void *firstPlayerController = *(void **) ((uintptr_t) localPlayer + 0x40);
+                        if (firstPlayerController) {
+                            Quaternion bodyRot = Euler({0.0f, yaw, 0.0f});
+                            Quaternion cameraRot = Euler({pitch, 0.0f, 0.0f});
+                            setRotation(firstPlayerController, bodyRot, cameraRot);
+                        }
                     }
-                }
 
+                }
             }
         }
-
-
     }
     old_fire(gun);
 }
